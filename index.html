@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ГОСКОМБЛАГ // ПП-7</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: #000; }
+    body {
+      color: #39ff14;
+      font-family: "Courier New", Courier, monospace;
+      text-shadow: 0 0 5px #19ff00;
+      overflow: hidden;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(to bottom, transparent 0 3px, rgba(50,255,20,.04) 4px, transparent 5px);
+    }
+    #terminal {
+      min-height: 100vh;
+      padding: 3vh 4vw;
+      white-space: pre-wrap;
+      word-break: break-word;
+      outline: none;
+      font-size: clamp(14px, 1.5vw, 19px);
+      animation: flicker 4s infinite;
+    }
+    .cursor {
+      display: inline-block;
+      width: .65em;
+      height: 1.05em;
+      margin-left: .15em;
+      vertical-align: -.15em;
+      background: #39ff14;
+      animation: blink .85s steps(1, end) infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    @keyframes flicker { 20%, 62%, 97% { opacity: .88; } }
+  </style>
+</head>
+<body>
+  <main id="terminal" tabindex="0" aria-live="polite"></main>
+  <script>
+    const terminal = document.getElementById('terminal');
+    const initial = `================================================================================
+ГОСУДАРСТВЕННЫЙ КОМИТЕТ СССР ПО АВТОМАТИЗАЦИИ И ПЕРЕРАСПРЕДЕЛЕНИЮ БЛАГ (ГОСКОМБЛАГ)
+Центральная Система Учета и Взаимопомощи Трудящихся «МОЛОДЦЫ-УДАЛЬЦЫ»
+================================================================================
+Текущая дата: 21 сентября 1986 года                    Статус узла: СВЯЗЬ УСТАНОВЛЕНА
+Режим: ОТКРЫТЫЙ                                           ПП-7 / MONEY FOR NOTHING
+================================================================================
+
+ГЛАВНОЕ МЕНЮ СИСТЕМЫ
+Нажмите любую клавишу. Enter не требуется.
+
+  1. [ОБЩИЙ ФОНД]
+  2. [ЗАЯВКА]
+  3. [ОБМЕН]
+  4. [ЖАЛОБЫ]
+  5. [СПРАВКА]
+
+--------------------------------------------------------------------------------`;
+
+    function render(text) {
+      terminal.textContent = text;
+      const cursor = document.createElement('span');
+      cursor.className = 'cursor';
+      cursor.setAttribute('aria-hidden', 'true');
+      terminal.appendChild(cursor);
+      terminal.focus();
+    }
+
+    async function handleKey(event) {
+      event.preventDefault();
+      try {
+        const response = await fetch('/api/key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: event.key })
+        });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const data = await response.json();
+        render(data.output);
+      } catch (error) {
+        render('ОШИБКА СВЯЗИ С ВЫЧИСЛИТЕЛЬНЫМ ЦЕНТРОМ.\n' + error.message);
+      }
+    }
+
+    document.addEventListener('keydown', handleKey);
+    document.addEventListener('click', () => terminal.focus());
+    render(initial);
+  </script>
+</body>
+</html>
