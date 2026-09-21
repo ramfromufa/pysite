@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>МОЛОДЦЫ-УДАЛЬЦЫ</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #050b05;
+      color: #00e639;
+      font-family: "Courier New", monospace;
+      font-size: clamp(14px, 1.7vw, 18px);
+    }
+    main { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    .terminal {
+      white-space: pre-wrap;
+      line-height: 1.45;
+      text-shadow: 0 0 5px #00e639;
+    }
+    .header { color: #59ff7b; font-weight: bold; }
+    .separator { overflow: hidden; }
+    form { margin-top: 22px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    label { font-weight: bold; }
+    input {
+      width: 9em; padding: 8px; border: 1px solid #00e639;
+      background: #020502; color: #00e639; font: inherit;
+    }
+    button {
+      padding: 8px 16px; border: 1px solid #00e639; background: #00e639;
+      color: #020502; cursor: pointer; font: inherit; font-weight: bold;
+    }
+    button:hover { background: #59ff7b; }
+    .result { margin-top: 25px; border-top: 1px solid #00e639; padding-top: 18px; }
+    .error { color: #ff6b6b; }
+    .loading { display: none; margin-top: 20px; }
+    form.busy + .loading { display: block; }
+    a { color: #59ff7b; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="terminal header">================================================================================
+ГОСУДАРСТВЕННЫЙ КОМИТЕТ СССР ПО АВТОМАТИЗАЦИИ И ПЕРЕРАСПРЕДЕЛЕНИЮ БЛАГ (ГОСКОМБЛАГ)
+Центральная Система Учета и Взаимопомощи Трудящихся «МОЛОДЦЫ-УДАЛЬЦЫ»
+================================================================================
+Текущая дата: 21 сентября 1986 года                          Время: 10:15:23
+Статус узла: СВЯЗЬ УСТАНОВЛЕНА (ПП-7)                        Режим: ОТКРЫТЫЙ
+================================================================================</div>
+
+  <div class="terminal">[ ИДЕОЛОГИЧЕСКАЯ УСТАНОВКА ДНЯ ]
+«Кто не работает — тот не ест, но тот, кто автоматизировал труд,
+ получает по потребностям в рамках утвержденных фондов материального поощрения!»
+
+--------------------------------------------------------------------------------
+ГЛАВНОЕ МЕНЮ СИСТЕМЫ (Введите цифру 1-5 и нажмите Enter):
+--------------------------------------------------------------------------------
+
+ 1. [ОБЩИЙ ФОНД]  Ознакомиться со свободными остатками излишков производства.
+ 2. [ЗАЯВКА]      Подать прошение на выделение материальных благ безвозмездно.
+ 3. [ОБМЕН]       Сдать излишки личного подсобного хозяйства в фонд «Ничего».
+ 4. [ЖАЛОБЫ]      Анонимный регистр учета граждан, получающих блага незаслуженно.
+ 5. [СПРАВКА]     Разъяснение Постановления ЦК КПСС о нетрудовых доходах.
+
+--------------------------------------------------------------------------------
+[ НОВОСТИ ПЛАНОВОЙ СЕТИ ]
+* Стахановцы Н-ского металлургического комбината передали 500 тыс. нормо-часов.
+* Внимание! Выдача дефицитных чеков «Посылторга» временно приостановлена.
+--------------------------------------------------------------------------------</div>
+
+  <form method="post" action="{{ url_for('command') }}" onsubmit="this.classList.add('busy'); this.querySelector('button').disabled=true;">
+    <label for="choice">Введите команду (1-5, или 0 для выхода):</label>
+    <input id="choice" name="choice" inputmode="numeric" pattern="[0-5]" maxlength="1" required autofocus>
+    <button type="submit">ВЫПОЛНИТЬ</button>
+  </form>
+  <div class="loading terminal">. ПОДОЖДИТЕ, ИДЕТ СЧИТЫВАНИЕ ДАННЫХ С МАГНИТНОЙ ЛЕНТЫ... .</div>
+
+  {% if result %}
+  <section class="result terminal">
+    <strong>{{ result_title }}</strong>
+    <div>{{ result }}</div>
+    <p>Нажмите кнопку браузера «Назад» для возврата в Главное Меню.</p>
+  </section>
+  {% endif %}
+  {% if error %}<p class="result terminal error">{{ error }}</p>{% endif %}
+  {% if message %}<p class="result terminal">{{ message }}</p>{% endif %}
+</main>
+</body>
+</html>
