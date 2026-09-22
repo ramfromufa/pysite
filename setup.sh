@@ -232,6 +232,9 @@ fi
 log_info "Создание окончательной конфигурации Nginx с HTTPS..."
 
 cat > "$NGINX_CONFIG" << 'EOF'
+# Защита от DDOS/перебора: лимит 2 запросов в секунду с одного IP
+limit_req_zone $binary_remote_addr zone=one:2m rate=2r/s;
+
 # БЛОКИРОВКА ПРЯМОГО ДОСТУПА ПО IP-АДРЕСУ
 # 1. Ловим запросы по IP на обычный HTTP (порт 80)
 server {
@@ -316,6 +319,8 @@ server {
 
     # 1. Разрешаем строго только корень сайта и index.html
     location = / {
+        limit_req zone=one burst=5 nodelay;
+
         index index.html;
         try_files $uri $uri/ /index.html;
     }
@@ -341,6 +346,9 @@ server {
 
     # Проксирование WebSocket-соединения в Docker
     location /ws {
+
+        limit_req zone=one burst=3 nodelay;
+
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
         
