@@ -105,8 +105,8 @@
         // Превращаем ANSI-цвета в безопасный HTML
         let formatted = currentBuffer
             .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
+            //.replace(/</g, "&lt;") // Закоментить, если надо парсить HTML
+            //.replace(/>/g, "&gt;") // Закоментить, если надо парсить HTML  
             .replace(/\r\n/g, "<br>")
             .replace(/\n/g, "<br>")
             .replace(/\r/g, "")
