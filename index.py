@@ -46,26 +46,26 @@ def wait_for_return():
         if key in ("\r", "\n"): # Enter в разных терминалах может определяться как \r или \n
             return "0"
 
-def wait_for_choice(choices):
+def wait_for_test_id(test_ids):
     print_typewriter("""
 <div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">----------------------------------------------------------------------------------------------------------------------------------------------------------</div>
-<span style="color: #006400;">Нажмите одну из клавиш: """ + ", ".join(choices) + r"""</span>"""
+<span style="color: #006400;">Нажмите одну из клавиш: """ + ", ".join(test_ids) + r"""</span>"""
     )
     while True:
         key = get_key()
-        if key in choices:
-            return choices[key]
+        if key in test_ids:
+            return test_ids[key]
 
-def wait_for_choice_or_return(choices):
+def wait_for_test_id_or_return(test_ids):
     print_typewriter(r"""
 <div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">----------------------------------------------------------------------------------------------------------------------------------------------------------</div>
 <span style="color: #006400;">Нажмите <a href="javascript:void(0);" onclick="ws.send('\r')">[Enter]</a> для возврата домой
-или одну из клавиш: """ + ", ".join(choices) + r"""</span>"""
+или одну из клавиш: """ + ", ".join(test_ids) + r"""</span>"""
     )
     while True:
         key = get_key()
-        if key in choices:
-            return choices[key]
+        if key in test_ids:
+            return test_ids[key]
         elif key in ("\r", "\n"): # Enter в разных терминалах может определяться как \r или \n
             return "0"
 
@@ -74,9 +74,9 @@ def wait_for_choice_or_return(choices):
 
 
 def main_menu():
-    choice = "0"
+    test_id = "0"
     while True:
-        if choice == "0":
+        if test_id == "0":
         
             text = r"""
 <span style="color: #32CD32;">
@@ -110,13 +110,13 @@ def main_menu():
             clear_screen()
             print_typewriter(text)
 
-            choice = wait_for_choice({"1":"1",
+            test_id = wait_for_test_id({"1":"1",
                                       "2":"2",
                                       "3":"3",
                                       "4":"4",
                                       "5":"5"})
             
-        elif choice == "1":
+        elif test_id == "1":
             show_loading()
 
             text = """
@@ -130,9 +130,9 @@ def main_menu():
 
             clear_screen()
             print_typewriter(text)
-            choice = wait_for_return()
+            test_id = wait_for_return()
 
-        elif choice == "2":
+        elif test_id == "2":
             show_loading()
 
             text = f"""
@@ -147,9 +147,9 @@ def main_menu():
 
             clear_screen()
             print_typewriter(text)
-            choice = wait_for_return()
+            test_id = wait_for_return()
 
-        elif choice == "3":
+        elif test_id == "3":
             show_loading()
 
             text = """
@@ -165,9 +165,9 @@ def main_menu():
 
             clear_screen()
             print_typewriter(text)
-            choice = wait_for_return()
+            test_id = wait_for_return()
 
-        elif choice == "4":
+        elif test_id == "4":
             show_loading()
 
             text = """
@@ -182,9 +182,9 @@ def main_menu():
 
             clear_screen()
             print_typewriter(text)
-            choice = wait_for_return()
+            test_id = wait_for_return()
 
-        elif choice == "5":
+        elif test_id == "5":
             show_loading()
 
             text = """
@@ -209,7 +209,7 @@ blablabla"""
 
             clear_screen()
             print_typewriter(text)
-            choice = wait_for_choice_or_return({"1":"2",
+            test_id = wait_for_test_id_or_return({"1":"2",
                                                 "2":"3",
                                                 "3":"4",
                                                 "4":"5",
