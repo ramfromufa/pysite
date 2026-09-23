@@ -13,17 +13,12 @@
             margin: 0;
             padding: 20px;
             overflow-y: auto;
-            text-shadow: 0 0 4px rgba(0,255,0,0.6);
         }
         #console {
             white-space: pre-wrap;
             word-wrap: break-word;
             line-height: 1.3;
         }
-        /* Кастомные стили для эмуляции кодов ANSI */
-        .ansi-bold { font-weight: bold; color: #55ff55; }
-        .ansi-blink { animation: crt-blink 1s steps(2, start) infinite; }
-        @keyframes crt-blink { to { opacity: 0; } }
         
         #hidden-input {
             position: absolute; left: -9999px; opacity: 0;
@@ -38,7 +33,7 @@
             text-decoration: none;   /* Убирает подчеркивание */
         }
         a:hover {
-            color: #32CD32;          /* Чуть ярче при наведении */
+            color: #00ff00;          /* Чуть ярче при наведении */
             text-decoration: none;   /* Линия не появится и при наведении */
         }
     </style>
@@ -51,7 +46,6 @@
     const consoleDiv = document.getElementById('console');
     const hiddenInput = document.getElementById('hidden-input');
     
-    // Если сайта пока нет на HTTPS, используем ws://. Если SSL уже настроен — укажите 'wss://'
     const ws = new WebSocket('wss://DOMAIN_PLACEHOLDER/ws');
 
     let currentBuffer = "";
@@ -68,29 +62,46 @@
         renderData("\n\n[СЕАНС СВЯЗИ ЗАВЕРШЕН]");
     };
 
-    // Фокус на скрытый инпут для вызова клавиатур на смартфонах
+    // Фокус на скрытый инпут для вызова клавиатур на смартфонах и удержания фокуса ввода
     document.addEventListener('click', () => hiddenInput.focus());
 
-    // Перехват ввода и отправка посимвольно (имитация tty.setraw)
+    // Перехват системных и специальных клавиш (ПК)
     document.addEventListener('keydown', (e) => {
         if (ws.readyState !== WebSocket.OPEN) return;
         
+        // Защита от автоповтора при зажатии клавиши
+        if (e.repeat) return; 
+
+        // Обрабатываем ТОЛЬКО спец-клавиши. 
+        // Буквы и цифры не трогаем, они упадут в hiddenInput и обработаются ниже!
         if (e.key === 'Enter') {
             ws.send("\r");
-        } else if (e.key.length === 1) {
-            ws.send(e.key);
+            e.preventDefault();
+        } else if (e.key === 'Backspace') {
+            ws.send("\x7f"); // Стандартный ASCII-код Backspace (DEL) для TTY
+            e.preventDefault();
         }
+        
         // Запрещаем стандартные действия браузера (например, поиск по клавишам)
-        if(e.key === '/' || e.key === "'") e.preventDefault();
+        if (e.key === '/' || e.key === "'") e.preventDefault();
     });
 
-    // Обработка ввода для мобильных устройств
+    // ЕДИНЫЙ обработчик для ВСЕГО текстового ввода (и для ПК, и для смартфонов)
     hiddenInput.addEventListener('input', (e) => {
-        if (ws.readyState === WebSocket.OPEN && e.target.value.length > 0) {
-            ws.send(e.target.value.slice(-1));
+        if (ws.readyState !== WebSocket.OPEN) {
             e.target.value = "";
+            return;
+        }
+
+        const text = e.target.value;
+        if (text.length > 0) {
+            // Отправляем самый свежий введенный символ
+            ws.send(text.slice(-1));
+            // Мгновенно очищаем поле, чтобы оно всегда было готово к приему следующего символа
+            e.target.value = ""; 
         }
     });
+
 
     function renderData(data) {
         // Если пришла команда очистки от сервера — мгновенно обнуляем экран и буфер
@@ -109,15 +120,7 @@
             //.replace(/>/g, "&gt;") // Закоментить, если надо парсить HTML  
             .replace(/\r\n/g, "<br>")
             .replace(/\n/g, "<br>")
-            .replace(/\r/g, "")
-            // Жирный зеленый текст (BOLD_GREEN: \033[1;32m)
-            .replace(/\x1b\[1;32m([\s\S]*?)(?:\x1b\[0m|$)/g, '<span class="ansi-bold">$1</span>')
-            // Мигающий зеленый текст (BLINK_GREEN: \033[5;32m)
-            .replace(/\x1b\[5;32m([\s\S]*?)(?:\x1b\[0m|$)/g, '<span class="ansi-bold ansi-blink">$1</span>')
-            // Стандартный зеленый текст (GREEN: \033[0;32m)
-            .replace(/\x1b\[0;32m([\s\S]*?)(?:\x1b\[0m|$)/g, '<span>$1</span>')
-            // Убираем сбросы стилей
-            .replace(/\x1b\[0m/g, "");
+            .replace(/\r/g, "");
 
         consoleDiv.innerHTML = formatted;
         window.scrollTo(0, document.body.scrollHeight);

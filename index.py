@@ -4,36 +4,11 @@ import sys
 import time
 import random
 
+def clear_screen(): # Для Linux
+    os.system("clear")
 
-# Цветовые коды ANSI для зеленого терминала
-GREEN = "\033[0;32m"
-BOLD_GREEN = "\033[1;32m"
-BLINK_GREEN = "\033[5;32m"
-RESET = "\033[0m"
-
-SCREEN_WIDTH = 80
-
-
-def clear_screen():
-    os.system("clear" if os.name != "nt" else "cls")
-
-
-def get_key():
-    """
-    Считывает одну клавишу без необходимости нажимать Enter.
-    Работает в Linux/macOS и Windows.
-    """
-    if os.name == "nt":
-        import msvcrt
-
-        key = msvcrt.getch()
-
-        # Специальные клавиши могут возвращать два байта
-        if key in (b"\x00", b"\xe0"):
-            return msvcrt.getch().decode(errors="ignore")
-
-        return key.decode(errors="ignore")
-
+def get_key(): # Считывает одну клавишу без необходимости нажимать Enter. Для Linux
+    
     import termios
     import tty
 
@@ -46,118 +21,107 @@ def get_key():
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
-
-def print_typewriter(text, delay=0.01):
+def print_typewriter(text, delay=0.001):
     for char in text:
-        sys.stdout.write(GREEN + char + RESET)
+        sys.stdout.write(char)
         sys.stdout.flush()
         time.sleep(delay)
 
-    print()
-
-
 def show_loading():
     clear_screen()
-
-    print(BOLD_GREEN + "\n" + "=" * SCREEN_WIDTH)
-    print(
-        "ОБРАБОТКА ЗАПРОСА ЦЕНТРАЛЬНЫМ ВЫЧИСЛИТЕЛЬНЫМ "
-        "ЦЕНТРОМ БЭСМ-6..."
+    print_typewriter(
+        "ОБРАБОТКА ЗАПРОСА ЦЕНТРАЛЬНЫМ ВЫЧИСЛИТЕЛЬНЫМ ЦЕНТРОМ БЭСМ-6"
     )
-    print("=" * SCREEN_WIDTH + RESET)
-    print()
-
-    # Эффект пульсации/ожидания
-    for _ in range(3):
-        sys.stdout.write(
-            GREEN
-            + ". ПОДОЖДИТЕ, ИДЕТ СЧИТЫВАНИЕ ДАННЫХ С МАГНИТНОЙ ЛЕНТЫ... .\r"
-            + RESET
-        )
-        sys.stdout.flush()
-        time.sleep(0.4)
-
-        sys.stdout.write(" " * 75 + "\r")
-        sys.stdout.flush()
-        time.sleep(0.2)
-
+    print_typewriter(
+        "." * random.randint(2, 4), 0.5
+    )
 
 def wait_for_return():
-    """
-    Возврат в главное меню по клавише Enter.
-    input() не используется.
-    """
-    print(BOLD_GREEN + "\n" + "-" * SCREEN_WIDTH)
-    print("Нажмите [Enter] для возврата в Главное Меню.")
-    print("-" * SCREEN_WIDTH + RESET)
-
+    print_typewriter(r"""
+<div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">----------------------------------------------------------------------------------------------------------------------------------------------------------</div>
+<span style="color: #006400;">Нажмите <a href="javascript:void(0);" onclick="ws.send('\r')">[Enter]</a> для возврата домой.</span>"""
+    )
     while True:
         key = get_key()
+        if key in ("\r", "\n"): # Enter в разных терминалах может определяться как \r или \n
+            return "0"
 
-        # Enter в разных терминалах может определяться как \r или \n
-        if key in ("\r", "\n"):
-            break
+def wait_for_choice(choices):
+    print_typewriter("""
+<div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">----------------------------------------------------------------------------------------------------------------------------------------------------------</div>
+<span style="color: #006400;">Нажмите одну из клавиш: """ + ", ".join(choices) + r"""</span>"""
+    )
+    while True:
+        key = get_key()
+        if key in choices:
+            return choices[key]
+
+def wait_for_choice_or_return(choices):
+    print_typewriter(r"""
+<div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">----------------------------------------------------------------------------------------------------------------------------------------------------------</div>
+<span style="color: #006400;">Нажмите <a href="javascript:void(0);" onclick="ws.send('\r')">[Enter]</a> для возврата домой
+или одну из клавиш: """ + ", ".join(choices) + r"""</span>"""
+    )
+    while True:
+        key = get_key()
+        if key in choices:
+            return choices[key]
+        elif key in ("\r", "\n"): # Enter в разных терминалах может определяться как \r или \n
+            return "0"
+
+
+
 
 
 def main_menu():
+    choice = "0"
     while True:
-        clear_screen()
-
-        menu = f"""{BOLD_GREEN}================================================================================
+        if choice == "0":
+        
+            text = r"""
+<span style="color: #32CD32;">
+<div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">==========================================================================================================================================================</div>
 ГОСУДАРСТВЕННЫЙ КОМИТЕТ СССР ПО АВТОМАТИЗАЦИИ И ПЕРЕРАСПРЕДЕЛЕНИЮ БЛАГ (ГОСКОМБЛАГ)
 Центральная Система Учета и Взаимопомощи Трудящихся «МОЛОДЦЫ-УДАЛЬЦЫ»
-================================================================================
+<div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">==========================================================================================================================================================</div>
 Текущая дата: 21 сентября 1986 года                          Время: 10:15:23
 Статус узла: СВЯЗЬ УСТАНОВЛЕНА (ПП-7)                        Режим: ОТКРЫТЫЙ
-================================================================================
+<div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">==========================================================================================================================================================</div></span>
 
 [ ИДЕОЛОГИЧЕСКАЯ УСТАНОВКА ДНЯ ]
 «Кто не работает — тот не ест, но тот, кто автоматизировал труд,
  получает по потребностям в рамках утвержденных фондов материального поощрения!»
 
---------------------------------------------------------------------------------
+<div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">----------------------------------------------------------------------------------------------------------------------------------------------------------</div>
 ГЛАВНОЕ МЕНЮ СИСТЕМЫ (Нажмите цифру 1-5):
---------------------------------------------------------------------------------
+<div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">----------------------------------------------------------------------------------------------------------------------------------------------------------</div>
 
- 1. """ + r"""<a href="javascript:void(0);" onclick="ws.send('1')">[ОБЩИЙ ФОНД]</a>""" + f"""  Ознакомиться со свободными остатками излишков производства.
- 2. """ + r"""<a href="javascript:void(0);" onclick="ws.send('2')">[ЗАЯВКА]</a>""" + f"""      Подать прошение на выделение материальных благ безвозмездно.
- 3. """ + r"""<a href="javascript:void(0);" onclick="ws.send('3')">[ОБМЕН]</a>""" + f"""       Сдать излишки личного подсобного хозяйства в фонд «Ничего».
- 4. """ + r"""<a href="javascript:void(0);" onclick="ws.send('4')">[ЖАЛОБЫ]</a>""" + f"""      Анонимный регистр учета граждан, получающих блага незаслуженно.
- 5. """ + r"""<a href="javascript:void(0);" onclick="ws.send('5')">[СПРАВКА]</a>""" + f"""     Разъяснение Постановления ЦК КПСС о нетрудовых доходах.
+ 1. <a href="javascript:void(0);" onclick="ws.send('1')">[ОБЩИЙ ФОНД]</a>  Ознакомиться со свободными остатками излишков производства.
+ 2. <a href="javascript:void(0);" onclick="ws.send('2')">[ЗАЯВКА]</a>      Подать прошение на выделение материальных благ безвозмездно.
+ 3. <a href="javascript:void(0);" onclick="ws.send('3')">[ОБМЕН]</a>       Сдать излишки личного подсобного хозяйства в фонд «Ничего».
+ 4. <a href="javascript:void(0);" onclick="ws.send('4')">[ЖАЛОБЫ]</a>      Анонимный регистр учета граждан, получающих блага незаслуженно.
+ 5. <a href="javascript:void(0);" onclick="ws.send('5')">[СПРАВКА]</a>     Разъяснение Постановления ЦК КПСС о нетрудовых доходах.
 
---------------------------------------------------------------------------------
+<div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">----------------------------------------------------------------------------------------------------------------------------------------------------------</div>
 [ НОВОСТИ ПЛАНОВОЙ СЕТИ ]
 * Стахановцы Н-ского металлургического комбината передали 500 тыс. нормо-часов.
-* Внимание! Выдача дефицитных чеков «Посылторга» временно приостановлена.
---------------------------------------------------------------------------------{RESET}"""
+* Внимание! Выдача дефицитных чеков «Посылторга» временно приостановлена."""
 
-        print(menu)
+            clear_screen()
+            print_typewriter(text)
 
-        try:
-            print(
-                GREEN
-                + "Нажмите клавишу 1-5, либо 0 для выхода: "
-                + RESET,
-                end="",
-                flush=True,
-            )
-
-            # Главное меню работает без нажатия Enter
-            choice = get_key()
-            print(choice)
-
-        except (KeyboardInterrupt, EOFError):
-            break
-
-        if choice == "0":
-            break
-
+            choice = wait_for_choice({"1":"1",
+                                      "2":"2",
+                                      "3":"3",
+                                      "4":"4",
+                                      "5":"5"})
+            
         elif choice == "1":
             show_loading()
 
             text = """
 РАЗДЕЛ 1: ОБЩИЙ ФОНД ИЗЛИШКОВ
---------------------------------------------------------------------------------
+<div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">----------------------------------------------------------------------------------------------------------------------------------------------------------</div>
 На складах Госкомблага обнаружены нераспределенные блага:
 * Автомобили «Москвич-412» (без очереди) — 2 шт. (выделено ветеранам труда)
 * Гарнитуры мебельные «жилая комната» — 14 шт.
@@ -166,18 +130,16 @@ def main_menu():
 
             clear_screen()
             print_typewriter(text)
-            wait_for_return()
+            choice = wait_for_return()
 
         elif choice == "2":
             show_loading()
 
-            ticket = f"ЭВМ-{random.randint(10000, 99999)}"
-
             text = f"""
 РАЗДЕЛ 2: ОФОРМЛЕНИЕ БЕЗВОЗМЕЗДНОЙ ЗАЯВКИ
---------------------------------------------------------------------------------
+<div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">----------------------------------------------------------------------------------------------------------------------------------------------------------</div>
 Ваш запрос на получение «Money for Nothing» зафиксирован.
-Присвоен номер прошения: {BOLD_GREEN}{ticket}{GREEN}
+Присвоен номер прошения: ЭВМ-{random.randint(10000, 99999)}
 Статус: НА РАССМОТРЕНИИ В РАЙКОМЕ.
 
 Приблизительное время ожидания в очереди: 4 года, 7 месяцев, 12 дней.
@@ -185,14 +147,14 @@ def main_menu():
 
             clear_screen()
             print_typewriter(text)
-            wait_for_return()
+            choice = wait_for_return()
 
         elif choice == "3":
             show_loading()
 
             text = """
 РАЗДЕЛ 3: СДАЧА ИЗЛИШКОВ
---------------------------------------------------------------------------------
+<div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">----------------------------------------------------------------------------------------------------------------------------------------------------------</div>
 Товарищ! Помните: излишки личного хозяйства разрушают социалистическую мораль!
 Заполните бумажную форму 4-Б и сдайте в заготовительную контору:
 
@@ -203,14 +165,14 @@ def main_menu():
 
             clear_screen()
             print_typewriter(text)
-            wait_for_return()
+            choice = wait_for_return()
 
         elif choice == "4":
             show_loading()
 
             text = """
 РАЗДЕЛ 4: РЕГИСТР УЧЕТА ТУНЕЯДЦЕВ И ДАРМОЕДОВ
---------------------------------------------------------------------------------
+<div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">----------------------------------------------------------------------------------------------------------------------------------------------------------</div>
 ВНИМАНИЕ! Сигналы граждан проверяются дружинниками в течение 24 часов.
 
 Если ваш сосед слушает зарубежный рок, не работает и утверждает, что получает
@@ -220,14 +182,14 @@ def main_menu():
 
             clear_screen()
             print_typewriter(text)
-            wait_for_return()
+            choice = wait_for_return()
 
         elif choice == "5":
             show_loading()
 
             text = """
 РАЗДЕЛ 5: СПРАВОЧНАЯ ИНФОРМАЦИЯ
---------------------------------------------------------------------------------
+<div style="display: inline-block; max-width: 100%; overflow: hidden; white-space: nowrap; vertical-align: bottom; margin: 0; padding: 0;">----------------------------------------------------------------------------------------------------------------------------------------------------------</div>
 Выдержка из Уголовного Кодекса РСФСР (Статья 209):
 
 «Систематическое занятие бродяжничеством или попрошайничеством, а также ведение
@@ -235,18 +197,23 @@ def main_menu():
 наказывается лишением свободы на срок до одного года или исправительными работами».
 
 Выдача средств в рамках системы «МОЛОДЦЫ-УДАЛЬЦЫ» тунеядством не является,
-так как утверждена решением Политбюро ЦК КПСС."""
+так как утверждена решением Политбюро ЦК КПСС.
+
+ 1. """ + r"""<a href="javascript:void(0);" onclick="ws.send('1')">[page 5.1]</a>""" + """ page 5.1.
+ 2. """ + r"""<a href="javascript:void(0);" onclick="ws.send('2')">[page 5.2]</a>""" + """ page 5.2.
+ 3. """ + r"""<a href="javascript:void(0);" onclick="ws.send('3')">[page 5.3]</a>""" + """ page 5.3.
+ 4. """ + r"""<a href="javascript:void(0);" onclick="ws.send('4')">[page 5.4]</a>""" + """ page 5.4.
+ 5. """ + r"""<a href="javascript:void(0);" onclick="ws.send('5')">[page 5.5]</a>""" + """ page 5.5.
+
+blablabla"""
 
             clear_screen()
             print_typewriter(text)
-            wait_for_return()
-
-    clear_screen()
-    print(
-        GREEN
-        + "Сеанс связи с Госкомблагом СССР завершен. До свидания, товарищ!"
-        + RESET
-    )
+            choice = wait_for_choice_or_return({"1":"2",
+                                                "2":"3",
+                                                "3":"4",
+                                                "4":"5",
+                                                "5":"1"})
 
 
 if __name__ == "__main__":
